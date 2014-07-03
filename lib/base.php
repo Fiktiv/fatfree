@@ -1339,6 +1339,7 @@ class Base extends Prefab {
 	function call($func,$args=NULL,$hooks='') {
 		if (!is_array($args))
 			$args=array($args);
+		$injector=$this->hive['injector'];
 		// Execute function; abort if callback/hook returns FALSE
 		if (is_string($func) &&
 			preg_match('/(.+)\h*(->|::)\h*(.+)/s',$func,$parts)) {
@@ -1348,8 +1349,10 @@ class Base extends Prefab {
 					is_string($func)?$parts[1]:$this->stringify()));
 			if ($parts[2]=='->')
 				$parts[1]=is_subclass_of($parts[1],'Prefab')?
-					call_user_func($parts[1].'::instance'):
-					new $parts[1]($this);
+					//call_user_func($parts[1].'::instance'):
+					$injector->execute($parts[1].'::instance'):
+					//new $parts[1]($this);
+					$injector->make($parts[1]);
 			$func=array($parts[1],$parts[3]);
 		}
 		if (!is_callable($func))
@@ -1364,16 +1367,19 @@ class Base extends Prefab {
 		// Execute pre-route hook if any
 		if ($obj && $hooks && in_array($hook='beforeroute',$hooks) &&
 			method_exists($func[0],$hook) &&
-			call_user_func_array(array($func[0],$hook),$args)===FALSE)
+			//call_user_func_array(array($func[0],$hook),$args)===FALSE)
+			$injector->execute(array($func[0],$hook),$args)===FALSE)
 			return FALSE;
 		// Execute callback
-		$out=call_user_func_array($func,$args?:array());
+		//$out=call_user_func_array($func,$args?:array());
+		$out=$injector->execute($func,$args?:array());
 		if ($out===FALSE)
 			return FALSE;
 		// Execute post-route hook if any
 		if ($obj && $hooks && in_array($hook='afterroute',$hooks) &&
 			method_exists($func[0],$hook) &&
-			call_user_func_array(array($func[0],$hook),$args)===FALSE)
+			//call_user_func_array(array($func[0],$hook),$args)===FALSE)
+			$injector->execute(array($func[0],$hook),$args)===FALSE)
 			return FALSE;
 		return $out;
 	}
@@ -1747,6 +1753,15 @@ class Base extends Prefab {
 		date_default_timezone_set($this->hive['TZ']);
 		// Register framework autoloader
 		spl_autoload_register(array($this,'autoload'));
+		// Register Composer autoloader
+		require('vendor/autoload.php');
+		// Set up Auryn
+		$injector=new Auryn\Provider(new Auryn\ReflectionPool());
+		$this->hive['injector']=&$injector;
+		$injector->share($this);
+		$injector->defineParam('app',$this);
+		$injector->defineParam('f3',$this);
+
 		// Register shutdown handler
 		register_shutdown_function(array($this,'unload'),getcwd());
 	}
