@@ -1372,6 +1372,8 @@ class Base extends Prefab {
 			return FALSE;
 		// Execute callback
 		//$out=call_user_func_array($func,$args?:array());
+		// Make sure $app gets passed on as an instance because it is Prefab
+    $args[':app'] = $this;
 		$out=$injector->execute($func,$args?:array());
 		if ($out===FALSE)
 			return FALSE;
