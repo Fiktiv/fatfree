@@ -1753,8 +1753,6 @@ class Base extends Prefab {
 		date_default_timezone_set($this->hive['TZ']);
 		// Register framework autoloader
 		spl_autoload_register(array($this,'autoload'));
-		// Register Composer autoloader
-		require('vendor/autoload.php');
 		// Set up Auryn
 		$injector=new Auryn\Provider(new Auryn\ReflectionPool());
 		$this->hive['injector']=&$injector;
