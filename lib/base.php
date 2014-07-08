@@ -1372,8 +1372,6 @@ class Base extends Prefab {
 			return FALSE;
 		// Execute callback
 		//$out=call_user_func_array($func,$args?:array());
-		// Make sure $app gets passed on as an instance because it is Prefab
-    $args[':app'] = $this;
 		$out=$injector->execute($func,$args?:array());
 		if ($out===FALSE)
 			return FALSE;
@@ -1592,6 +1590,14 @@ class Base extends Prefab {
 
 	//! Bootstrap
 	function __construct() {
+		// Set up Auryn
+		$injector=new Auryn\Provider(new Auryn\ReflectionPool());
+		$this->hive['injector']=&$injector;
+		// Share $this as Base
+		$injector->share($this);
+		// Define params for non-typehinted, commonly named Base class references
+		$injector->defineParam('app',$this);
+		$injector->defineParam('f3',$this);
 		// Managed directives
 		ini_set('default_charset',$charset='UTF-8');
 		if (extension_loaded('mbstring'))
@@ -1755,13 +1761,6 @@ class Base extends Prefab {
 		date_default_timezone_set($this->hive['TZ']);
 		// Register framework autoloader
 		spl_autoload_register(array($this,'autoload'));
-		// Set up Auryn
-		$injector=new Auryn\Provider(new Auryn\ReflectionPool());
-		$this->hive['injector']=&$injector;
-		$injector->share($this);
-		$injector->defineParam('app',$this);
-		$injector->defineParam('f3',$this);
-
 		// Register shutdown handler
 		register_shutdown_function(array($this,'unload'),getcwd());
 	}
