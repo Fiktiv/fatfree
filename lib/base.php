@@ -1372,6 +1372,7 @@ class Base extends Prefab {
 			return FALSE;
 		// Execute callback
 		//$out=call_user_func_array($func,$args?:array());
+		$args[':params'] = $args?($args[1]?:array()):array();
 		$out=$injector->execute($func,$args?:array());
 		if ($out===FALSE)
 			return FALSE;
