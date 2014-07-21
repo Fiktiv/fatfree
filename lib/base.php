@@ -1122,6 +1122,7 @@ class Base extends Prefab {
 			$this->hive['ROUTES'][str_replace('@',"\x00".'@',$parts[3])]
 				[$type][strtoupper($verb)]=array($handler,$ttl,$kbps);
 		}
+		$this->hive['RAW_ALIASES'] = $this->hive['ALIASES'];
 	}
 
 	/**
